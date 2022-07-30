@@ -239,6 +239,7 @@ def parse_args():
     statusParser.add_argument('--led2',  choices=['on','off'])
     statusParser.add_argument('--led3',  choices=['on','off'])
 
+    parser.add_argument('--reset','-r',action='store_const', const=True,help='Reset the PHY')
 
     args = parser.parse_args()
     return args
@@ -246,194 +247,51 @@ def parse_args():
 
 if __name__ == '__main__':
     args = parse_args()
-    #plca
-    if 'nodeId' in args:
-        mc.plcaCtrl(args.enable,args.nodeCnt,args.nodeId,args.timer,args.burst)
-    #status
-    if 'plca' in args:
-        if args.plca!=None:
-            status1=mc.getStatus1()
-            status3=mc.getStatus3()
-            burst=mc.getPLCABurst()
-            print('PLCA status:')
-            print('Transmit Collision Status (TXCOL): %d' % (bool(status1&0x400)))
-            print('Transmit Jabber Status (TXJAB): %d' % (bool(status1&0x200)))
-            print('PLCA Empty Cycle Status (EMPCYC): %d' % (bool(status1&0x80)))
-            print('Receive in Transmit Opportunity (RXINTO): %d' % (bool(status1&0x40)))
-            print('Unexpected BEACON Received (UNEXPB): %d' % (bool(status1&0x20)))
-            print('BEACON Received Before Transmit Opportunity (BCNBFTO): %d' % (bool(status1&0x10)))
-            print('PLCA Symbols Detected (PLCASYM): %d' % (bool(status1&0x4)))
-            print('End-of-Stream Delimiter Error (ESDERR): %d' % (bool(status1&0x2)))
-            print('5B Decode Error (DEC5B): %d' % (bool(status1&0x1)))
-            print('PLCA Error Transmit Opportunity ID (ERRTOID): %d' % ((status3&0xff)))
-            print('Transmit Opportunity Count (TOCNT): %ld' % (mc.readTransmitOppoCnt()))
-            print('Beacon Count (BCNCNT): %ld' % (mc.readBeaconCnt()))
-        if args.pcs!=None:
-            print('PCS status:')
-            fault=mc.readPCSFault()
-            print('PCS Fault Indication: %d' % (fault))
-            print('Remote Jabber Count (RMTJABCNT): %d' % (mc.readRemoteJabberCnt()))
-            print('Corrupted Transmit Count (CORTXCNT): %d' % (mc.readCorruptedTransmitCnt()))
-    #led
-    if 'led1' in args:
-        if args.led1!=None:
-            if args.led1 == 'on':
-                mc.ledCtrl(0,True)
-            else:
-                mc.ledCtrl(0,False)
-        if args.led2!=None:
-            if args.led2 == 'on':
-                mc.ledCtrl(1,True)
-            else:
-                mc.ledCtrl(1,False)
-        if args.led3!=None:
-            if args.led3 == 'on':
-                mc.ledCtrl(2,True)
-            else:
-                mc.ledCtrl(2,False)
-    
-
-
-
-
-# @app.route("/get_plca_status",methods=['POST'])
-# def get_plca_status():
-    
-#     status1=mc.getStatus1()
-#     status2=mc.getStatus2()
-#     status3=mc.getStatus3()
-#     burst=mc.getPLCABurst()
-
-#     status={
-#         'TXCOL':bool(status1&0x400),
-#         'TXJAB':bool(status1&0x200),
-#         'EMPCYC':bool(status1&0x80),
-#         'RXINTO':bool(status1&0x40),
-#         'UNEXPB':bool(status1&0x20),
-#         'BCNBFTO':bool(status1&0x10),
-#         'PLCASYM':bool(status1&0x4),
-#         'ESDERR':bool(status1&0x2),
-#         'DEC5B':bool(status1&0x1),
-#         'RESETC':bool(status2&0x800),
-#         'RESETC':bool(status2&0x800),
-#         'ERRTOID':status3&0xFF,
-#         'TOCNT':mc.readTransmitOppoCnt(),
-#         'BCNCNT':mc.readBeaconCnt(),
-#         'PST':bool(mc.getPLCAStatus()&0x8000),
-#         'TOTMR':mc.getPLCATotmr()&0xff,
-#         'MAXBC':(burst&0xff00)>>8,
-#         'BTMR':burst&0xff
-
-#     }
-#     return jsonify({
-#         'err':0,
-#         'msg':'success',
-#         'data':status
-#     }), 200
-
-
-# @app.route("/get_pcs_remote_jabber_cnt",methods=['POST'])
-# def get_remote_jabber():
-#     cnt=mc.readRemoteJabberCnt()
-#     return jsonify({
-#         'err':0,
-#         'msg':'success',
-#         'data':{
-#             'cnt':cnt
-#         }
-#     }), 200
-
-# @app.route("/get_pcs_fault",methods=['POST'])
-# def get_pcs_fault():
-#     fault=mc.readPCSFault()
-#     return jsonify({
-#         'err':0,
-#         'msg':'success',
-#         'data':{
-#             'falut':fault
-#         }
-#     }), 200
-
-# @app.route("/get_pcs_corrupted_trans_Cnt",methods=['POST'])
-# def get_corrupted_trans_Cnt():
-#     cnt=mc.readCorruptedTransmitCnt()
-#     return jsonify({
-#         'err':0,
-#         'msg':'success',
-#         'data':{
-#             'cnt':cnt
-#         }
-#     }), 200
-
-
-
-# @app.route("/set_plca",methods=['POST'])
-# def set_plca():
-#     if request.content_type == 'application/json':
-#         data = request.get_json()
-#         print(data)
-#         # enable PLCA transmit opportunity counter and PLCA BEACON counter is enabled
-#         mc.writeMMDreg(0x1f,0x0020,3)
-#         #clean the cnt
-#         beaconCnt=mc.readBeaconCnt()
-#         #clean the cnt
-#         transOppoCnt=mc.readTransmitOppoCnt()
-#         # setting
-#         mc.plcaCtrl(data['enable'],data['nodeCnt'],data['nodeId'])
-
-#         return jsonify({
-#             'err':0,
-#             'msg':'success',
-#             'data':{
-#                 'transOppoCnt':transOppoCnt,
-#                 'beaconCnt':beaconCnt
-#             }
-#         }), 200
-#     else:
-#         return jsonify({
-#             'err':-1,
-#             'msg':'content type error'
-#         }), 400
-
-# @app.route("/set_led",methods=['POST'])
-# def set_led():
-#     if request.content_type == 'application/json':
-#         data = request.get_json()
-#         print(data)
-#         mc.ledCtrl(0,data['led0'])
-#         mc.ledCtrl(1,data['led1'])
-#         mc.ledCtrl(2,data['led2'])
-        
-    
-
-#         return jsonify({
-#             'err':0,
-#             'msg':'success'
-#         }), 200    
-#     else:
-#         return jsonify({
-#             'err':-1,
-#             'msg':'content type error'
-#         }), 400    
-
-
-
-# app.run(port=5010)
-
-
-
-# mc.action.writeGenReg(0x24,0x770)
-# ledCtrl(2,False)
-# ledCtrl(1,False)
-# # ledCtrl(0,False)
-# mc.plcaCtrl(True,2,0)
-# print(mc.readMMDreg(1,0x12))
-# print(mc.readMMDreg(1,0x0834))
-# mc.setT1sTestMode(0)
-# print(mc.getT1sTestMode())
-# print(mc.getStatus1())
-# print(mc.getStatus2())
-# print(mc.getStatus3())
-# print(mc.getPLCAStatus())
-# print(mc.readBeaconCnt())
-# print(mc.readTransmitOppoCnt())
+    if args.reset:
+        mc.writePhyReg(0,0x8000)
+    else:
+        #plca
+        if 'nodeId' in args:
+            mc.plcaCtrl(args.enable,args.nodeCnt,args.nodeId,args.timer,args.burst)
+        #status
+        if 'plca' in args:
+            if args.plca!=None:
+                status1=mc.getStatus1()
+                status3=mc.getStatus3()
+                burst=mc.getPLCABurst()
+                print('PLCA status:')
+                print('Transmit Collision Status (TXCOL): %d' % (bool(status1&0x400)))
+                print('Transmit Jabber Status (TXJAB): %d' % (bool(status1&0x200)))
+                print('PLCA Empty Cycle Status (EMPCYC): %d' % (bool(status1&0x80)))
+                print('Receive in Transmit Opportunity (RXINTO): %d' % (bool(status1&0x40)))
+                print('Unexpected BEACON Received (UNEXPB): %d' % (bool(status1&0x20)))
+                print('BEACON Received Before Transmit Opportunity (BCNBFTO): %d' % (bool(status1&0x10)))
+                print('PLCA Symbols Detected (PLCASYM): %d' % (bool(status1&0x4)))
+                print('End-of-Stream Delimiter Error (ESDERR): %d' % (bool(status1&0x2)))
+                print('5B Decode Error (DEC5B): %d' % (bool(status1&0x1)))
+                print('PLCA Error Transmit Opportunity ID (ERRTOID): %d' % ((status3&0xff)))
+                print('Transmit Opportunity Count (TOCNT): %ld' % (mc.readTransmitOppoCnt()))
+                print('Beacon Count (BCNCNT): %ld' % (mc.readBeaconCnt()))
+            if args.pcs!=None:
+                print('PCS status:')
+                fault=mc.readPCSFault()
+                print('PCS Fault Indication: %d' % (fault))
+                print('Remote Jabber Count (RMTJABCNT): %d' % (mc.readRemoteJabberCnt()))
+                print('Corrupted Transmit Count (CORTXCNT): %d' % (mc.readCorruptedTransmitCnt()))
+        #led
+        if 'led1' in args:
+            if args.led1!=None:
+                if args.led1 == 'on':
+                    mc.ledCtrl(0,True)
+                else:
+                    mc.ledCtrl(0,False)
+            if args.led2!=None:
+                if args.led2 == 'on':
+                    mc.ledCtrl(1,True)
+                else:
+                    mc.ledCtrl(1,False)
+            if args.led3!=None:
+                if args.led3 == 'on':
+                    mc.ledCtrl(2,True)
+                else:
+                    mc.ledCtrl(2,False)
