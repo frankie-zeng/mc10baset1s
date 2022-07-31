@@ -1,4 +1,6 @@
-# -*- coding: UTF-8 -*-
+#!/usr/bin/env python
+
+# -*- coding: utf-8 -*-
 import argparse
 import subprocess
 import os
